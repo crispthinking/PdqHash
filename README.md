@@ -26,6 +26,18 @@ The interpretation of images relies on the fantastic work by the at [SkiaSharp](
 
 ### Contributors
 
+<table>
+<tr>
+    <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
+        <a href=https://github.com/abbottdev>
+            <img src=https://avatars.githubusercontent.com/u/3226335?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=James Abbott/>
+            <br />
+            <sub style="font-size:14px"><b>James Abbott</b></sub>
+        </a>
+    </td>
+</tr>
+</table>
+
 
 
 
