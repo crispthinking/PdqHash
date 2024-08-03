@@ -1,6 +1,6 @@
 # PDQ Hash
 
-This is a pure .NET implementation of the PDQ hashing alorithm originally developed by (https://github.com/facebook/ThreatExchange/tree/main/pdq)[Meta]. 
+This is a pure .NET implementation of the PDQ hashing alorithm originally developed by [Meta](https://github.com/facebook/ThreatExchange/tree/main/pdq). 
 
 ## Who are we?
 
@@ -22,7 +22,7 @@ Our guiding priciples are:
 
 ### Shoutouts
 
-The interpretation of images relies on the fantastic work by the team at SkiaSharp, and the video processing relies on the great contributions provided by FFMPEG.
+The interpretation of images relies on the fantastic work by the at [SkiaSharp](https://github.com/mono/SkiaSharp), and the video processing relies on the great contributions provided by [FFMpeg.Core](https://github.com/rosenbjerg/FFMpegCore).
 
 ### Contributors
 

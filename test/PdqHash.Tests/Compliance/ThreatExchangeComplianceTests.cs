@@ -28,7 +28,7 @@ public class ThreatExchangeComplianceTests
 
         var info = new ProcessStartInfo()
         {
-            FileName = "/Users/james.abbott/.local/bin/threatexchange",
+            FileName = "threatexchange",
             Arguments = $"hash photo {fullPath}",
             RedirectStandardOutput = true,
             UseShellExecute = false,
