@@ -1,0 +1,25 @@
+<Project>
+  <PropertyGroup>
+    <Authors>Crisp Thinking</Authors>
+    <Copyright>Copyright (c) Crisp Thinking Group Ltd. 2014-2024</Copyright>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="coverlet.collector" Version="6.0.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageVersion Include="xunit" Version="2.5.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
+    <PackageVersion Include="FFMpegCore.Extensions.SkiaSharp" Version="5.0.0" />
+    <PackageVersion Include="FFMpegCore" Version="5.1.0" />
+    <PackageVersion Include="CommunityToolkit.HighPerformance" Version="8.2.2" />
+    <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="8.0.7" />
+    <PackageVersion Include="SkiaSharp" Version="2.88.8" />
+    <PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
+    <PackageVersion Include="System.Linq.Async" Version="6.0.1" />
+  </ItemGroup>
+</Project>

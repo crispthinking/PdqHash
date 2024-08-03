@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageTags>pdq, hashing, trust and safety</PackageTags>
+
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <!-- If all members are not documented, you can disable the compiler warnings -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+
+    <Platform>x64</Platform>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="LICENSE" Pack="true" PackagePath=""/>
+    <None Include="README.md" Pack="true" PackagePath=""/>
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All"/>
+    <PackageReference Include="FFMpegCore" />
+    <PackageReference Include="FFMpegCore.Extensions.SkiaSharp" />
+    <PackageReference Include="CommunityToolkit.HighPerformance" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" />
+    <PackageReference Include="SkiaSharp" />
+    <PackageReference Include="System.IO.Pipelines" />
+    <PackageReference Include="System.Linq.Async" />
+  </ItemGroup>
+</Project>
