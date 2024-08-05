@@ -4,7 +4,7 @@ using PdqHash.Hashing;
 
 namespace PdqHashing.Tests.Compliance;
 
-public class HashSpeedComplianceTests
+public class HashSpeedComplianceTests(ITestOutputHelper output)
 {
     private const string BASE_DIR = "../../../../../assets/DISC21/";
 
@@ -26,7 +26,7 @@ public class HashSpeedComplianceTests
         }
 
         stopwatch.Stop();
-
+        output.WriteLine("Processed {hashes} in {millis} milliseconds, hash rate: {rate} p/s", files.Count * iterations, stopwatch.ElapsedMilliseconds, stopwatch.ElapsedMilliseconds / ((double)files.Count * iterations));
         Assert.InRange(stopwatch.ElapsedMilliseconds / ((double)files.Count * iterations), 0, 20);
     }
 }
