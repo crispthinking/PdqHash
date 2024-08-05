@@ -1,11 +1,12 @@
 name: publish
 on:
-  workflow_dispatch: # Allow running the workflow manually from the GitHub UI
   push:
     branches:
-      - 'main'       # Run the workflow when pushing to the main branch  release:
+      - 'main'       # Run the workflow when pushing to the main branch  
+  release:
     types:
       - published    # Run the workflow when a new GitHub release is published
+  workflow_dispatch: # Allow running the workflow manually from the GitHub UI
 
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -23,7 +24,7 @@ jobs:
     - uses: actions/setup-python@v5
       with:
         python-version: '3.10' 
-        
+
     - name: Install threatexchange CLI
       run: python3 -m pip install threatexchange --upgrade
 
@@ -39,6 +40,14 @@ jobs:
     - name: Test
       run: dotnet test -c Release --no-build
 
+    - name: Test Report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()    # run this step even if previous step failed
+      with:
+        name: Tests            # Name of the check run which will be created
+        path: test/PdqHash.Tests/TestResults/**/*.trx    # Path to test results
+        reporter: dotnet-trx        # Format of test results
+
     # Create the NuGet package in the folder from the environment variable NuGetDirectory
     - name: Pack
       run: dotnet pack --configuration Release --output ${{ env.NuGetDirectory }}
@@ -50,6 +59,7 @@ jobs:
         if-no-files-found: error
         retention-days: 7
         path: ${{ env.NuGetDirectory }}/*.nupkg
+        
   deploy:
     # Publish only when creating a GitHub Release
     # https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository
