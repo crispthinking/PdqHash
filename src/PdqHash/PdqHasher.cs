@@ -54,6 +54,11 @@ public class PdqHasher : IDisposable
 
     public HashResult? FromFile(string filePath)
     {
+        if (File.Exists(filePath) == false)
+        {
+            throw new ArgumentException($"FilePath: {filePath} does not exist");
+        }
+
         using var input = File.OpenRead(filePath);
         return FromStream(input, filePath);
     }
@@ -62,11 +67,15 @@ public class PdqHasher : IDisposable
     {
         var stopwatch = Stopwatch.StartNew();
 
-        using var original = SKBitmap.Decode(input);
+        // https://github.com/mono/SkiaSharp/issues/2429
+        using var inputStream = new SKManagedStream(input);
+        using var skData = SKData.Create(input);
+        using var codec = SKCodec.Create(skData);
+        using var original = SKBitmap.Decode(skData);
 
         if (original == null)
         {
-            return null;
+            throw new Exception("Failed to parse input stream as a valid SKImage stream");
         }
 
         using var resized = original.Resize(new SKImageInfo(512, 512)

@@ -12,7 +12,7 @@ public class HashSpeedComplianceTests(ITestOutputHelper output)
     public void EnsureHashesPerSecondKept()
     {
         var hasher = new PdqHasher();
-        var files = Directory.EnumerateFiles(BASE_DIR).ToList();
+        var files = Directory.EnumerateFiles(BASE_DIR, "*.jpg").ToList();
         var _ = hasher.FromFile(files.First());
         var iterations = 50;
         var stopwatch = Stopwatch.StartNew();
