@@ -66,16 +66,14 @@ public class PdqHasher : IDisposable
     public HashResult? FromStream(Stream input, string source)
     {
         var stopwatch = Stopwatch.StartNew();
-
-        // https://github.com/mono/SkiaSharp/issues/2429
-        using var inputStream = new SKManagedStream(input);
-        using var skData = SKData.Create(input);
-        using var codec = SKCodec.Create(skData);
-        using var original = SKBitmap.Decode(skData);
+        
+        using var managed = new SKFrontBufferedStream(input, SKCodec.MinBufferedBytesNeeded);
+        using var original = SKBitmap.Decode(managed);
 
         if (original == null)
         {
-            throw new Exception("Failed to parse input stream as a valid SKImage stream");
+            // https://github.com/mono/SkiaSharp/issues/2429
+            throw new ArgumentException($"Failed to parse input stream as a valid SKImage stream. Ensure the stream is able to read minimum of {SKCodec.MinBufferedBytesNeeded} to parse Codec info.");
         }
 
         using var resized = original.Resize(new SKImageInfo(512, 512)
