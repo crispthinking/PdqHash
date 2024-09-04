@@ -35,10 +35,10 @@ internal static class Matrices
         return array;
     }
 
-    public static (double Min, double Max) JaggedMax(this Span2D<double> m, int numRows, int numCols)
+    public static (float Min, float Max) JaggedMax(this Span2D<float> m, int numRows, int numCols)
     {
-        double max;
-        double min = max = m[0, 0];
+        float max;
+        float min = max = m[0, 0];
 
         for (var i = 0; i < numRows; i++)
         {
@@ -58,16 +58,16 @@ internal static class Matrices
         return (min, max);
     }
 
-    public static double Torben(this Span2D<double> m, int numRows, int numCols)
+    public static double Torben(this Span2D<float> m, int numRows, int numCols)
     {
         var n = numRows * numCols;
         var midn = (int)(n + 1) / 2;
         var less = 0;
         var greater = 0;
         var equal = 0;
-        var guess = 0.0D;
-        var maxltguess = 0.0D;
-        var mingtguess = 0.0D;
+        var guess = 0.0F;
+        var maxltguess = 0.0F;
+        var mingtguess = 0.0F;
 
         var (min, max) = m.JaggedMax(numRows, numCols);
 

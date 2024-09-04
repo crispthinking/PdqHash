@@ -14,8 +14,8 @@ public class PdqHasher : IDisposable
 
     //  From Wikipedia: standard RGB to luminance (the 'Y' in 'YUV').
     static readonly double DCT_MATRIX_SCALE_FACTOR = Math.Sqrt(2.0 / 64.0);
-    private readonly IMemoryOwner<double> _dctMatrixOwner;
-    private readonly Memory<double> _dctMemory;
+    private readonly IMemoryOwner<float> _dctMatrixOwner;
+    private readonly Memory<float> _dctMemory;
 
     //  Wojciech Jarosz 'Fast Image Convolutions' ACM SIGGRAPH 2001:
     //  X,Y,X,Y passes of 1-D box filters produces a 2D tent filter.
@@ -32,14 +32,14 @@ public class PdqHasher : IDisposable
 
     public PdqHasher()
     {
-        _dctMatrixOwner = MemoryPool<double>.Shared.Rent(16 * 64);
+        _dctMatrixOwner = MemoryPool<float>.Shared.Rent(16 * 64);
         _dctMemory = _dctMatrixOwner.Memory.Slice(0, 16 * 64);
         ComputeDCTMatrix(_dctMemory);
     }
 
-    public Span2D<double> DCTMatrix => _dctMemory.Span.AsSpan2D(16, 64);
+    public Span2D<float> DCTMatrix => _dctMemory.Span.AsSpan2D(16, 64);
 
-    private static void ComputeDCTMatrix(Memory<double> memory)
+    private static void ComputeDCTMatrix(Memory<float> memory)
     {
         var dctMatrix = memory.Span.AsSpan2D(16, 64);
 
@@ -47,7 +47,7 @@ public class PdqHasher : IDisposable
         {
             for (var j = 0; j < 64; j++)
             {
-                dctMatrix[i, j] = Math.Cos(Math.PI / 2 / 64 * (i + 1) * (2 * j + 1));
+                dctMatrix[i, j] = (float)(DCT_MATRIX_SCALE_FACTOR * Math.Cos(Math.PI / 2 / 64 * (i + 1) * (2 * j + 1)));
             }
         }
     }
@@ -67,8 +67,14 @@ public class PdqHasher : IDisposable
     {
         var stopwatch = Stopwatch.StartNew();
         
-        using var managed = new SKFrontBufferedStream(input, SKCodec.MinBufferedBytesNeeded);
-        using var original = SKBitmap.Decode(managed);
+        using var codec = SKCodec.Create(input, out var result);
+
+        if (codec == null)
+        {
+            throw new ArgumentException($"Failed to parse codec from SKImage stream. Reason: {result}");
+        }
+
+        using var original = SKBitmap.Decode(codec);
 
         if (original == null)
         {
@@ -76,20 +82,23 @@ public class PdqHasher : IDisposable
             throw new ArgumentException($"Failed to parse input stream as a valid SKImage stream. Ensure the stream is able to read minimum of {SKCodec.MinBufferedBytesNeeded} to parse Codec info.");
         }
 
-        using var resized = original.Resize(new SKImageInfo(512, 512)
+        var width = Math.Min(original.Width, 1024);
+        var height = Math.Min(original.Height, 1024);
+        
+        using var resized = original.Resize(new SKImageInfo(width, height)
         {
-            ColorSpace = SKColorSpace.CreateSrgb()
-        }, SKFilterQuality.Medium);
+            ColorSpace = SKColorSpace.CreateSrgb(),
+        }, SKFilterQuality.High);
 
         var readSeconds = stopwatch.Elapsed.TotalSeconds;
         var numCols = resized.Width;
         var numRows = resized.Height;
 
-        using var buffer1 = SpanOwner<double>.Allocate(resized.Height * resized.Width);
-        using var buffer2 = SpanOwner<double>.Allocate(resized.Height * resized.Width);
+        using var buffer1 = SpanOwner<float>.Allocate(resized.Height * resized.Width);
+        using var buffer2 = SpanOwner<float>.Allocate(resized.Height * resized.Width);
 
-        using var buffer64x64Owner = SpanOwner<double>.Allocate(64 * 64);
-        using var buffer16x16Owner = SpanOwner<double>.Allocate(16 * 16);
+        using var buffer64x64Owner = SpanOwner<float>.Allocate(64 * 64);
+        using var buffer16x16Owner = SpanOwner<float>.Allocate(16 * 16);
 
         var buffer64x64 = buffer64x64Owner.Span.AsSpan2D(64, 64);
         var buffer16x16 = buffer64x64Owner.Span.AsSpan2D(16, 16);
@@ -115,11 +124,11 @@ public class PdqHasher : IDisposable
         var numCols = resized.Width;
         var numRows = resized.Height;
 
-        using var buffer1 = SpanOwner<double>.Allocate(resized.Height * resized.Width);
-        using var buffer2 = SpanOwner<double>.Allocate(resized.Height * resized.Width);
+        using var buffer1 = SpanOwner<float>.Allocate(resized.Height * resized.Width);
+        using var buffer2 = SpanOwner<float>.Allocate(resized.Height * resized.Width);
 
-        using var buffer64x64Owner = SpanOwner<double>.Allocate(64 * 64);
-        using var buffer16x16Owner = SpanOwner<double>.Allocate(16 * 16);
+        using var buffer64x64Owner = SpanOwner<float>.Allocate(64 * 64);
+        using var buffer16x16Owner = SpanOwner<float>.Allocate(16 * 16);
 
         var buffer64x64 = buffer64x64Owner.Span.AsSpan2D(64, 64);
         var buffer16x16 = buffer64x64Owner.Span.AsSpan2D(16, 16);
@@ -151,7 +160,7 @@ public class PdqHasher : IDisposable
         }
     }
 
-    private HashAndQuality FromImage(SKBitmap img, Span<double> buffer1, Span<double> buffer2, Span2D<double> buffer64x64, Span2D<double> buffer16x16)
+    private HashAndQuality FromImage(SKBitmap img, Span<float> buffer1, Span<float> buffer2, Span2D<float> buffer64x64, Span2D<float> buffer16x16)
     {
         var numCols = img.Width;
         var numRows = img.Height;
@@ -159,10 +168,11 @@ public class PdqHasher : IDisposable
         return PdqHash256FromFloatLuma(buffer1, buffer2, numRows, numCols, buffer64x64, buffer16x16);
     }
 
-    private HashAndQuality PdqHash256FromFloatLuma(Span<double> buffer1, Span<double> buffer2, int numRows, int numCols, Span2D<double> buffer64x64, Span2D<double> buffer16x16)
+    private HashAndQuality PdqHash256FromFloatLuma(Span<float> buffer1, Span<float> buffer2, int numRows, int numCols, Span2D<float> buffer64x64, Span2D<float> buffer16x16)
     {
         var windowSizeAlongRows = ComputeJaroszFilterWindowSize(numCols);
         var windowSizeAlongCols = ComputeJaroszFilterWindowSize(numRows);
+
         JaroszFilterFloat(
             buffer1,
             buffer2,
@@ -176,9 +186,6 @@ public class PdqHasher : IDisposable
         DecimateFloat(buffer1, numRows, numCols, buffer64x64);
         var quality = ComputePDQImageDomainQualityMetric(buffer64x64);
 
-        var image = SKData.Create(buffer64x64.Width * buffer64x64.Height);
-
-
         Dct64To16(buffer64x64, buffer16x16);
         var hash = PdqBuffer16x16ToBits(buffer16x16);
         return new HashAndQuality(hash, quality);
@@ -190,7 +197,7 @@ public class PdqHasher : IDisposable
     /// </summary>
     /// <param name="dctOutput16x16"></param>
     /// <returns></returns>
-    private static PdqHash256 PdqBuffer16x16ToBits(Span2D<double> dctOutput16x16)
+    private static PdqHash256 PdqBuffer16x16ToBits(Span2D<float> dctOutput16x16)
     {
         var hash = new PdqHash256();
         var dctMedian = dctOutput16x16.Torben(16, 16);
@@ -217,16 +224,16 @@ public class PdqHasher : IDisposable
     /// current implementation which is completely non-clever/non-Lee but
     /// computes only what is needed.
     /// </summary>
-    private void Dct64To16(Span2D<double> A, Span2D<double> B)
+    private void Dct64To16(Span2D<float> A, Span2D<float> B)
     {
-        using var TOwner = SpanOwner<double>.Allocate(16 * 64);
+        using var TOwner = SpanOwner<float>.Allocate(16 * 64);
         var T = TOwner.Span.AsSpan2D(16, 64);
 
         for (var i = 0; i < 16; i++)
         {
             for (var j = 0; j < 64; j++)
             {
-                var tij = 0.0;
+                var tij = 0.0F;
                 for (var k = 0; k < 64; k++)
                 {
                     tij += DCTMatrix[i, k] * A[k, j];
@@ -239,7 +246,7 @@ public class PdqHasher : IDisposable
         {
             for (var j = 0; j < 16; j++)
             {
-                var sumk = 0.0D;
+                var sumk = 0.0F;
                 for (var k = 0; k < 64; k++)
                 {
                     sumk += T[i, k] * DCTMatrix[j, k];
@@ -255,7 +262,7 @@ public class PdqHasher : IDisposable
     /// some of many small ones. The constants are all manually selected, and
     /// tuned as described in the document.
     /// </summary>
-    private static int ComputePDQImageDomainQualityMetric(Span2D<double> buffer64x64)
+    private static int ComputePDQImageDomainQualityMetric(Span2D<float> buffer64x64)
     {
         var gradientSum = 0;
         for (var i = 0; i < 63; i++)
@@ -284,10 +291,7 @@ public class PdqHasher : IDisposable
         return quality;
     }
 
-    /// <param name="output">numRows x numCols in row-major order</param>
-#pragma warning disable CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
-    private static void DecimateFloat(Span<double> in_, int inNumRows, int inNumCols, Span2D<double> output)
-#pragma warning restore CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
+    private static void DecimateFloat(Span<float> in_, int inNumRows, int inNumCols, Span2D<float> output)
     {
         for (var i = 0; i < 64; i++)
         {
@@ -300,7 +304,7 @@ public class PdqHasher : IDisposable
         }
     }
 
-    private static void JaroszFilterFloat(Span<double> buffer1, Span<double> buffer2, int numRows, int numCols, int windowSizeAlongRows, int windowSizeAlongCols, int nreps)
+    private static void JaroszFilterFloat(Span<float> buffer1, Span<float> buffer2, int numRows, int numCols, int windowSizeAlongRows, int windowSizeAlongCols, int nreps)
     {
         for (var _i = 0; _i < nreps; _i++)
         {
@@ -314,7 +318,7 @@ public class PdqHasher : IDisposable
     /// <param name="numRows"></param>
     /// <param name="numCols"></param>
     /// <param name="windowSize"></param>
-    private static void BoxAlongColsFloat(Span<double> input, Span<double> output, int numRows, int numCols, int windowSize)
+    private static void BoxAlongColsFloat(Span<float> input, Span<float> output, int numRows, int numCols, int windowSize)
     {
         var j = 0;
         while (j < numCols)
@@ -329,7 +333,7 @@ public class PdqHasher : IDisposable
     /// <param name="numRows"></param>
     /// <param name="numCols"></param>
     /// <param name="windowSize"></param>
-    private static void BoxAlongRowsFloat(Span<double> input, Span<double> output, int numRows, int numCols, int windowSize)
+    private static void BoxAlongRowsFloat(Span<float> input, Span<float> output, int numRows, int numCols, int windowSize)
     {
         var i = 0;
         while (i < numRows)
@@ -345,7 +349,7 @@ public class PdqHasher : IDisposable
         }
     }
 
-    private static void Box1DFloat(Span<double> invec, int inStartOffset, Span<double> outVec, int outStartOffset, int vectorLength, int stride, int fullWindowSize)
+    private static void Box1DFloat(Span<float> invec, int inStartOffset, Span<float> outVec, int outStartOffset, int vectorLength, int stride, int fullWindowSize)
     {
         var halfWindowSize = (int)((fullWindowSize + 2) / 2);
         var phase_1_nreps = (int)(halfWindowSize - 1);
@@ -355,7 +359,7 @@ public class PdqHasher : IDisposable
         var li = 0;  // Index of left edge of read window, for subtracts
         var ri = 0;  // Index of right edge of read windows, for adds
         var oi = 0;  // Index into output vector
-        var sum = 0.0D;
+        var sum = 0.0F;
         var currentWindowSize = 0;
 
         var i = 0;
@@ -409,10 +413,11 @@ public class PdqHasher : IDisposable
         return (dimensionSize + PDQ_JAROSZ_WINDOW_SIZE_DIVISOR - 1) / PDQ_JAROSZ_WINDOW_SIZE_DIVISOR;
     }
 
-    private static void FillFloatLumaFromBufferImage(SKBitmap img, Span<double> luma)
+    private static void FillFloatLumaFromBufferImage(SKBitmap img, Span<float> luma)
     {
         var numCols = img.Width;
         var numRows = img.Height;
+
         if (img.ColorSpace != null && img.ColorSpace.IsSrgb == false)
         {
             throw new InvalidOperationException("Failed to transform image to sRGB color space");
@@ -423,7 +428,7 @@ public class PdqHasher : IDisposable
             for (var col = 0; col < numCols; col++)
             {
                 var pixel = img.GetPixel(col, row);
-
+                
                 luma[row * numCols + col] = (
                     LUMA_FROM_R_COEFF * pixel.Red +
                     LUMA_FROM_G_COEFF * pixel.Green +

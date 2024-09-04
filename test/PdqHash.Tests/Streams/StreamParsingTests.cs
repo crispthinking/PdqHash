@@ -27,6 +27,28 @@ public class StreamParsingTests()
     }
 
     [Fact]
+    public void EnsureHashingWithUnSeekableInvalidStream()
+    {
+        var hasher = new PdqHasher();
+                 
+        var pipe = new Pipe();
+
+        var stream = File.Open(Path.Combine(BASE_DIR, "InvalidImage.txt"), FileMode.Open, FileAccess.Read);
+
+        var hashTask = Task.Run(() =>
+        {
+            return hasher.FromStream(pipe.Reader.AsStream(), "");
+        });
+
+        Assert.ThrowsAny<ArgumentException>(() =>
+        {
+            var hash = hasher.FromStream(stream, "");        
+            Assert.Null(hash);
+        });
+    }
+
+
+    [Fact]
     public async Task EnsureHashingWithNonSeekableStreams()
     {
         var hasher = new PdqHasher();
@@ -40,7 +62,7 @@ public class StreamParsingTests()
             return hasher.FromStream(pipe.Reader.AsStream(), "");
         });
 
-        var writeTask = Task.Run(() =>pipe.Writer.WriteAsync(bytes));
+        var writeTask = Task.Run(() => pipe.Writer.WriteAsync(bytes));
 
         await Task.WhenAll(hashTask, writeTask);
 
