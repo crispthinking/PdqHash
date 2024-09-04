@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using PdqHash;
 using PdqHash.Hashing;
+using Snapshooter.Xunit;
 
 namespace PdqHashing.Tests.Compliance;
 
@@ -44,8 +45,13 @@ public class ThreatExchangeComplianceTests
         var pdq = output["pdq ".Length..].TrimStart().TrimEnd();
         var referenceHash = PdqHash256.fromHexString(pdq);
         
-        var distance = result.Hash.hammingDistance(referenceHash);        
+        var distance = result.Hash.hammingDistance(referenceHash);
 
         Assert.InRange(distance, 0, MAX_REFERENCE_DISTANCE);
+        Snapshot.Match(new {
+            Distance = distance, 
+            Hash = result.Hash.toHexString(),
+            ReferenceHash = pdq,
+        }, fileName);
     }
 }
