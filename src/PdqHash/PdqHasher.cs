@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Diagnostics;
 using CommunityToolkit.HighPerformance;
 using CommunityToolkit.HighPerformance.Buffers;
@@ -67,8 +67,14 @@ public class PdqHasher : IDisposable
     {
         var stopwatch = Stopwatch.StartNew();
         
-        using var managed = new SKFrontBufferedStream(input, SKCodec.MinBufferedBytesNeeded);
-        using var original = SKBitmap.Decode(managed);
+        using var codec = SKCodec.Create(input, out var result);
+
+        if (codec == null)
+        {
+            throw new ArgumentException($"Failed to parse codec from SKImage stream. Reason: {result}");
+        }
+
+        using var original = SKBitmap.Decode(codec);
 
         if (original == null)
         {
@@ -76,10 +82,13 @@ public class PdqHasher : IDisposable
             throw new ArgumentException($"Failed to parse input stream as a valid SKImage stream. Ensure the stream is able to read minimum of {SKCodec.MinBufferedBytesNeeded} to parse Codec info.");
         }
 
-        using var resized = original.Resize(new SKImageInfo(512, 512)
+        var width = Math.Min(original.Width, 1024);
+        var height = Math.Min(original.Height, 1024);
+        
+        using var resized = original.Resize(new SKImageInfo(width, height)
         {
-            ColorSpace = SKColorSpace.CreateSrgb()
-        }, SKFilterQuality.Medium);
+            ColorSpace = SKColorSpace.CreateSrgb(),
+        }, SKFilterQuality.High);
 
         var readSeconds = stopwatch.Elapsed.TotalSeconds;
         var numCols = resized.Width;
@@ -175,9 +184,6 @@ public class PdqHasher : IDisposable
 
         DecimateFloat(buffer1, numRows, numCols, buffer64x64);
         var quality = ComputePDQImageDomainQualityMetric(buffer64x64);
-
-        var image = SKData.Create(buffer64x64.Width * buffer64x64.Height);
-
 
         Dct64To16(buffer64x64, buffer16x16);
         var hash = PdqBuffer16x16ToBits(buffer16x16);

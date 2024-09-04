@@ -6,7 +6,7 @@ namespace PdqHashing.Tests.Compliance;
 
 public class ThreatExchangeComplianceTests
 {
-    private const int MAX_REFERENCE_DISTANCE = 14;
+    private const int MAX_REFERENCE_DISTANCE = 0;
     private const string BASE_DIR = "../../../../../assets/DISC21/";
 
     public static IEnumerable<object[]> Data =>
