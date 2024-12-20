@@ -30,7 +30,7 @@ The interpretation of images relies on the fantastic work by the at [SkiaSharp](
 <tr>
     <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
         <a href=https://github.com/abbottdev>
-            <img src=https://private-avatars.githubusercontent.com/u/3226335?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MzQ2NDA2MjAsIm5iZiI6MTczNDYzOTQyMCwicGF0aCI6Ii91LzMyMjYzMzUifQ.We0B_vQpXDHwqvYoaX-qJikXEEIao-Kg99B56PX_TfE&v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=James Abbott/>
+            <img src=https://avatars.githubusercontent.com/u/3226335?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=James Abbott/>
             <br />
             <sub style="font-size:14px"><b>James Abbott</b></sub>
         </a>
