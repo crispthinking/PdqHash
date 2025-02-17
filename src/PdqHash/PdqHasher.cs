@@ -84,11 +84,11 @@ public class PdqHasher : IDisposable
 
         var width = Math.Min(original.Width, 1024);
         var height = Math.Min(original.Height, 1024);
-        
+
         using var resized = original.Resize(new SKImageInfo(width, height)
         {
             ColorSpace = SKColorSpace.CreateSrgb(),
-        }, SKFilterQuality.High);
+        }, SKSamplingOptions.Default);
 
         var readSeconds = stopwatch.Elapsed.TotalSeconds;
         var numCols = resized.Width;
