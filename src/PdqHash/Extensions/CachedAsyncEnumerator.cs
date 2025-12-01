@@ -1,32 +1,22 @@
 
 namespace PdqHash.Hashing.Extensions;
 
-public class CachedAsyncEnumerator<T> : IAsyncEnumerator<T>
+public class CachedAsyncEnumerator<T>(List<T> backingList, IAsyncEnumerator<T> enumerator) : IAsyncEnumerator<T>
 {
-    private readonly IEnumerator<T> _staticEnumerator;
+    private readonly IEnumerator<T> _staticEnumerator = backingList.GetEnumerator();
     private bool _staticEnumerationComplete;
-    private readonly List<T> _items;
-    private readonly IAsyncEnumerator<T> _asyncEnumerator;
-    private T? _current;
-
-    public CachedAsyncEnumerator(List<T> backingList, IAsyncEnumerator<T> enumerator)
-    {
-        _items = backingList;
-        _staticEnumerator = _items.GetEnumerator();
-        _staticEnumerationComplete = false;
-        _asyncEnumerator = enumerator;
-        _current = default;
-    }
-
-    public T Current => _current ?? throw new InvalidOperationException("Cannot access current item without iteration");
+    private readonly List<T> _items = backingList;
+    private readonly IAsyncEnumerator<T> _asyncEnumerator = enumerator;
+    
+    public T Current { get => field ?? throw new InvalidOperationException("Cannot access current item without iteration"); private set; }
 
     public async ValueTask<bool> MoveNextAsync()
     {
-        if (_staticEnumerationComplete == false)
+        if (_staticEnumerationComplete is false)
         {
             if (_staticEnumerator.MoveNext())
             {
-                _current = _staticEnumerator.Current;
+                Current = _staticEnumerator.Current;
                 return true;
             }
             else
@@ -39,12 +29,12 @@ public class CachedAsyncEnumerator<T> : IAsyncEnumerator<T>
         if (await _asyncEnumerator.MoveNextAsync())
         {
             _items.Add(_asyncEnumerator.Current);
-            _current = _asyncEnumerator.Current;
+            Current = _asyncEnumerator.Current;
             return true;
         }
         else
         {
-            _current = default;
+            Current = default!;
             return false;
         }
     }
