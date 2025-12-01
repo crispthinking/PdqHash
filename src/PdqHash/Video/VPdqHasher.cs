@@ -77,7 +77,7 @@ public class VPdqHasher : IDisposable
                 .OrderBy(fi => fi.index);
 
             while (
-                ffmpegComplete == false || orderedFiles.Any())
+                ffmpegComplete is false || orderedFiles.Any())
             {
                 if (ffmpegTask.IsFaulted)
                 {

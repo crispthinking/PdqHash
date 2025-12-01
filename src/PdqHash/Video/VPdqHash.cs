@@ -6,8 +6,16 @@ namespace PdqHash.Hashing.Video;
 public class VPdqHash : IParsable<VPdqHash>
 {
     public required PdqHash256 Hash { get; init; }
-    public required int? Distance { get; init; }
-    public required int Frame { get; init; }
+    public required int? Distance 
+    { 
+        get; 
+        init => field = value is null or >= 0 ? value : throw new ArgumentOutOfRangeException(nameof(Distance), "Distance must be non-negative"); 
+    }
+    public required int Frame 
+    { 
+        get; 
+        init => field = value >= 0 ? value : throw new ArgumentOutOfRangeException(nameof(Frame), "Frame must be non-negative"); 
+    }
     public required TimeSpan? Timestamp { get; init; }
 
     public static VPdqHash Parse(string s, IFormatProvider? provider)

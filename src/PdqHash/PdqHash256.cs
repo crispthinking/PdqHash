@@ -152,7 +152,7 @@ public struct PdqHash256
 
     public static bool operator !=(PdqHash256 left, PdqHash256 right)
     {
-        return (left == right) == false;
+        return (left == right) is false;
     }
 
 
@@ -219,13 +219,13 @@ public struct PdqHash256
     public string dumpBits()
     {
         var i = HASH256NUMSLOTS - 1;
-        var str = new List<string>();
+        List<string> str = [];
 
         while (i >= 0)
         {
             var word = this.w[i] & 0xFFFF;
             var j = 15;
-            var bits = new List<string>();
+            List<string> bits = [];
             while (j >= 0)
             {
                 if ((word & (1 << j)) != 0)
@@ -247,7 +247,7 @@ public struct PdqHash256
     public IEnumerable<byte> ToBits()
     {
         var i = HASH256NUMSLOTS - 1;
-        var bits = new List<byte>();
+        List<byte> bits = [];
 
         while (i >= 0)
         {
@@ -273,7 +273,7 @@ public struct PdqHash256
     public string dumpBitsAcross()
     {
         var i = HASH256NUMSLOTS - 1;
-        var str = new List<string>();
+        List<string> str = [];
         var word = this.w[i] & 0xFFFF;
         var j = 15;
         while (i >= 0)

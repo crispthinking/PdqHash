@@ -4,11 +4,14 @@ namespace PdqHash.Hashing.Video;
 
 public static class VideoExtensions
 {
-    public static async Task<double> DetermineFramerateAsync(this VPdqHasher hasher, Uri uri, long? desiredFrameCount = null, CancellationToken cancellationToken = default) =>
-        DetermineFrameRate(desiredFrameCount, await FFProbe.AnalyseAsync(uri, null, cancellationToken));
+    extension(VPdqHasher hasher)
+    {
+        public async Task<double> DetermineFramerateAsync(Uri uri, long? desiredFrameCount = null, CancellationToken cancellationToken = default) =>
+            DetermineFrameRate(desiredFrameCount, await FFProbe.AnalyseAsync(uri, null, cancellationToken));
 
-    public static async Task<double> DetermineFramerateAsync(this VPdqHasher hasher, string filePath, long? desiredFrameCount = null, CancellationToken cancellationToken = default) =>
-        DetermineFrameRate(desiredFrameCount, await FFProbe.AnalyseAsync(filePath, null, cancellationToken));
+        public async Task<double> DetermineFramerateAsync(string filePath, long? desiredFrameCount = null, CancellationToken cancellationToken = default) =>
+            DetermineFrameRate(desiredFrameCount, await FFProbe.AnalyseAsync(filePath, null, cancellationToken));
+    }
 
     private static double DetermineFrameRate(long? desiredFrameCount, IMediaAnalysis analysis)
     {

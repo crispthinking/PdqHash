@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PdqHash/PdqHash.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/PdqHash.Tests/PdqHash.Tests.csproj" />
+  </Folder>
+</Solution>

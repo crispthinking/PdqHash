@@ -13,123 +13,131 @@ internal static class Matrices
         }
     }
 
-
-    public static T[][] Fill<T>(this T[][] array, T defaultValue, int depth)
+    extension<T>(T[][] array)
     {
-        for (var i = 0; i < array.Length; i++)
+        public T[][] Fill(T defaultValue, int depth)
         {
-            array[i] = Enumerable.Repeat(defaultValue, depth).ToArray();
-        }
-        return array;
-    }
-
-    public static T[,] Fill<T>(this T[,] array, T defaultValue, int width, int depth)
-    {
-        for (var i = 0; i < width; i++)
-        {
-            for (var x = 0; x < depth; x++)
+            for (var i = 0; i < array.Length; i++)
             {
-                array[i, x] = defaultValue;
+                array[i] = Enumerable.Repeat(defaultValue, depth).ToArray();
             }
+            return array;
         }
-        return array;
     }
 
-    public static (float Min, float Max) JaggedMax(this Span2D<float> m, int numRows, int numCols)
+    extension<T>(T[,] array)
     {
-        float max;
-        float min = max = m[0, 0];
-
-        for (var i = 0; i < numRows; i++)
+        public T[,] Fill(T defaultValue, int width, int depth)
         {
-            for (var j = 0; j < numCols; j++)
+            for (var i = 0; i < width; i++)
             {
-                var v = m[i, j];
-                if (v < min)
+                for (var x = 0; x < depth; x++)
                 {
-                    min = v;
-                }
-                if (v > max)
-                {
-                    max = v;
+                    array[i, x] = defaultValue;
                 }
             }
+            return array;
         }
-        return (min, max);
     }
 
-    public static double Torben(this Span2D<float> m, int numRows, int numCols)
+    extension(Span2D<float> m)
     {
-        var n = numRows * numCols;
-        var midn = (int)(n + 1) / 2;
-        var less = 0;
-        var greater = 0;
-        var equal = 0;
-        var guess = 0.0F;
-        var maxltguess = 0.0F;
-        var mingtguess = 0.0F;
-
-        var (min, max) = m.JaggedMax(numRows, numCols);
-
-        while (true)
+        public (float Min, float Max) JaggedMax(int numRows, int numCols)
         {
-            guess = (float)(min + max) / 2;
-            less = greater = equal = 0;
-            maxltguess = min;
-            mingtguess = max;
+            float max;
+            float min = max = m[0, 0];
 
-            for (var _i = 0; _i < numCols; _i++)
+            for (var i = 0; i < numRows; i++)
             {
-                for (var _j = 0; _j < numCols; _j++)
+                for (var j = 0; j < numCols; j++)
                 {
-                    var v = m[_i, _j];
-                    if (v < guess)
+                    var v = m[i, j];
+                    if (v < min)
                     {
-                        less++;
-                        if (v > maxltguess)
+                        min = v;
+                    }
+                    if (v > max)
+                    {
+                        max = v;
+                    }
+                }
+            }
+            return (min, max);
+        }
+
+        public double Torben(int numRows, int numCols)
+        {
+            var n = numRows * numCols;
+            var midn = (int)(n + 1) / 2;
+            var less = 0;
+            var greater = 0;
+            var equal = 0;
+            var guess = 0.0F;
+            var maxltguess = 0.0F;
+            var mingtguess = 0.0F;
+
+            var (min, max) = m.JaggedMax(numRows, numCols);
+
+            while (true)
+            {
+                guess = (float)(min + max) / 2;
+                less = greater = equal = 0;
+                maxltguess = min;
+                mingtguess = max;
+
+                for (var _i = 0; _i < numCols; _i++)
+                {
+                    for (var _j = 0; _j < numCols; _j++)
+                    {
+                        var v = m[_i, _j];
+                        if (v < guess)
                         {
-                            maxltguess = v;
+                            less++;
+                            if (v > maxltguess)
+                            {
+                                maxltguess = v;
+                            }
+                        }
+                        else if (v > guess)
+                        {
+                            greater++;
+                            if (v < mingtguess)
+                            {
+                                mingtguess = v;
+                            }
+                        }
+                        else
+                        {
+                            equal++;
                         }
                     }
-                    else if (v > guess)
-                    {
-                        greater++;
-                        if (v < mingtguess)
-                        {
-                            mingtguess = v;
-                        }
-                    }
-                    else
-                    {
-                        equal++;
-                    }
+                }
+                if (less <= midn && greater <= midn)
+                {
+                    break;
+                }
+                else if (less > greater)
+                {
+                    max = maxltguess;
+                }
+                else
+                {
+                    min = mingtguess;
                 }
             }
-            if (less <= midn && greater <= midn)
+
+            if (less >= midn)
             {
-                break;
+                return maxltguess;
             }
-            else if (less > greater)
+            else if (less + equal >= midn)
             {
-                max = maxltguess;
+                return guess;
             }
             else
             {
-                min = mingtguess;
+                return mingtguess;
             }
-        }
-
-        if (less >= midn)
-        {
-            return maxltguess;
-        }
-        else if (less + equal >= midn)
-        {
-            return guess;
-        }
-        else
-        {
-            return mingtguess;
         }
     }
 }

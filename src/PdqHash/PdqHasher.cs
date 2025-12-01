@@ -54,7 +54,7 @@ public class PdqHasher : IDisposable
 
     public HashResult? FromFile(string filePath)
     {
-        if (File.Exists(filePath) == false)
+        if (File.Exists(filePath) is false)
         {
             throw new ArgumentException($"FilePath: {filePath} does not exist");
         }
@@ -418,7 +418,7 @@ public class PdqHasher : IDisposable
         var numCols = img.Width;
         var numRows = img.Height;
 
-        if (img.ColorSpace != null && img.ColorSpace.IsSrgb == false)
+        if (img.ColorSpace != null && img.ColorSpace.IsSrgb is false)
         {
             throw new InvalidOperationException("Failed to transform image to sRGB color space");
         }
