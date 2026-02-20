@@ -10,21 +10,21 @@
     <NoWarn>$(NoWarn);NU1507</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-    <PackageVersion Include="MinVer" Version="6.0.0">
+    <PackageVersion Include="coverlet.collector" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageVersion Include="MinVer" Version="7.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageVersion>
-    <PackageVersion Include="Snapshooter.Xunit" Version="1.0.1" />
+    <PackageVersion Include="Snapshooter.Xunit" Version="1.1.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
-    <PackageVersion Include="FFMpegCore.Extensions.SkiaSharp" Version="5.0.2" />
-    <PackageVersion Include="FFMpegCore" Version="5.2.0" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.103" PrivateAssets="All" />
+    <PackageVersion Include="FFMpegCore.Extensions.SkiaSharp" Version="5.0.3" />
+    <PackageVersion Include="FFMpegCore" Version="5.4.0" />
     <PackageVersion Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
-    <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="9.0.9" />
-    <PackageVersion Include="SkiaSharp" Version="3.119.1" />
-    <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="3.119.1" />
+    <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="10.0.3" />
+    <PackageVersion Include="SkiaSharp" Version="3.119.2" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="3.119.2" />
   </ItemGroup>
 </Project>

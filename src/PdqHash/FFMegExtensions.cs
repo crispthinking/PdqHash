@@ -21,7 +21,7 @@ public static class FFMegImageExt
                     FFMpegArguments
                         .FromUrlInput(input)
                         .OutputToFile(baseDir + "Frame%05d.png", true, opts => opts
-                            .WithVideoCodec(VideoCodec.Png)
+                            .WithVideoCodec("png")
                             .WithFramerate(0.5)
                             .Resize(size))
                         .ProcessAsynchronously(true), cancellationToken);

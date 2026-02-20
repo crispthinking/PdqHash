@@ -124,7 +124,7 @@ public class VPdqHasher : IDisposable
         var args = FFMpegArguments
             .FromUrlInput(uri)
             .OutputToFile(baseDir + "/Frame%05d.png", true, opts => opts
-                .WithVideoCodec(VideoCodec.Png)
+                .WithVideoCodec("png")
                 .WithFramerate(frameRate)
                 .Resize(new Size(512, 512)));
         return HashVideoUsingFfmpegAsync(args, baseDir, frameRate, cancellationToken);
@@ -136,7 +136,7 @@ public class VPdqHasher : IDisposable
         var args = FFMpegArguments
                     .FromFileInput(fileName)
                     .OutputToFile(baseDir + "/Frame%05d.png", true, opts => opts
-                        .WithVideoCodec(VideoCodec.Png)
+                        .WithVideoCodec("png")
                         .WithFramerate(frameRate)
                         .Resize(new Size(512, 512)));
 
