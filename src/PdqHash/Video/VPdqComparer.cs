@@ -97,8 +97,8 @@ public class VPdqComparer
             }
         }
 
-        var leftMatchPercent = leftFramesMatched * 100 / await l.CountAsync();
-        var rightMatchPercent = rightFramesMatched * 100 / await r.CountAsync();
+        var leftMatchPercent = leftFramesMatched * 100 / l.Count;
+        var rightMatchPercent = rightFramesMatched * 100 / r.Count;
 
         return (leftMatchPercent > matchThreshold || rightMatchPercent > matchThreshold, leftMatchPercent, rightMatchPercent);
     }
