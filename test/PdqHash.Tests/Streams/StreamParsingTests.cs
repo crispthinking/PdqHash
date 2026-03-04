@@ -62,7 +62,11 @@ public class StreamParsingTests()
             return hasher.FromStream(pipe.Reader.AsStream(), "");
         });
 
-        var writeTask = Task.Run(() => pipe.Writer.WriteAsync(bytes));
+        var writeTask = Task.Run(async () =>
+        {
+            await pipe.Writer.WriteAsync(bytes);
+            await pipe.Writer.CompleteAsync();
+        });
 
         await Task.WhenAll(hashTask, writeTask);
 
