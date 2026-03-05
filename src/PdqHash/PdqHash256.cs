@@ -297,7 +297,7 @@ public struct PdqHash256
 
     public string dumpWords()
     {
-        return string.Join(",", Enumerable.Reverse(w).Select(w => w.ToString(CultureInfo.InvariantCulture)));
+        return string.Join(",", w.Reverse().Select(w => w.ToString(CultureInfo.InvariantCulture)));
     }
 
     public int[] Words() => w.ToArray();

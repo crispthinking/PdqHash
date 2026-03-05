@@ -9,10 +9,4 @@ public class CachedAsyncEnumerable<T>(IAsyncEnumerable<T> asyncEnumerable) : IAs
 
     public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) =>
         new CachedAsyncEnumerator<T>(_materialized, _asyncEnumerator);
-
-    /// <summary>
-    /// Returns the number of elements that have been materialized so far.
-    /// This is only accurate after the enumerable has been fully consumed.
-    /// </summary>
-    public int Count => _materialized.Count;
 }
