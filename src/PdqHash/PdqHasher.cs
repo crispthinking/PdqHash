@@ -66,7 +66,15 @@ public class PdqHasher : IDisposable
     public HashResult? FromStream(Stream input, string source)
     {
         var stopwatch = Stopwatch.StartNew();
-        
+
+        using var bufferedStream = input.CanSeek ? null : new MemoryStream();
+        if (bufferedStream != null)
+        {
+            input.CopyTo(bufferedStream);
+            bufferedStream.Position = 0;
+            input = bufferedStream;
+        }
+
         using var codec = SKCodec.Create(input, out var result);
 
         if (codec == null)
