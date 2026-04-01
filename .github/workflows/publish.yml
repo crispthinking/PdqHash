@@ -8,6 +8,14 @@ on:
       - published    # Run the workflow when a new GitHub release is published
   workflow_dispatch: # Allow running the workflow manually from the GitHub UI
 
+# Set permissions for the workflow.
+permissions:
+  contents: write
+  packages: write
+  checks: write
+  pull-requests: write
+  id-token: write  # Required for NuGet trusted publishing (OIDC)
+
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   DOTNET_NOLOGO: true
@@ -81,7 +89,14 @@ jobs:
         run: |
           dotnet nuget push ${NuGetDirectory}/*.nupkg --api-key "${{ secrets.GITHUB_TOKEN }}" --source "https://nuget.pkg.github.com/crispthinking/index.json" --skip-duplicate
 
+      - name: NuGet login (OIDC → temp API key)
+        if: github.event_name == 'release'
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
       - name: Publish NuGet package
         if: github.event_name == 'release'
         run: |
-          dotnet nuget push ${NuGetDirectory}/*.nupkg --api-key "${{ secrets.NUGET_APIKEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+          dotnet nuget push ${NuGetDirectory}/*.nupkg --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
