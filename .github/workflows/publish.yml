@@ -16,6 +16,9 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write  # Required for dorny/test-reporter to create check runs
     steps:
     - uses: actions/checkout@v6
       with:
@@ -63,6 +66,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: [ build ]
+    permissions:
+      packages: write   # Required to publish to GitHub Packages
+      id-token: write   # Required for NuGet trusted publishing (OIDC)
     steps:
       # Download the NuGet package created in the previous job
       - uses: actions/download-artifact@v8
@@ -81,7 +87,14 @@ jobs:
         run: |
           dotnet nuget push ${NuGetDirectory}/*.nupkg --api-key "${{ secrets.GITHUB_TOKEN }}" --source "https://nuget.pkg.github.com/crispthinking/index.json" --skip-duplicate
 
+      - name: NuGet login (OIDC → temp API key)
+        if: github.event_name == 'release'
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
       - name: Publish NuGet package
         if: github.event_name == 'release'
         run: |
-          dotnet nuget push ${NuGetDirectory}/*.nupkg --api-key "${{ secrets.NUGET_APIKEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+          dotnet nuget push ${NuGetDirectory}/*.nupkg --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
