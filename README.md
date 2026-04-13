@@ -22,7 +22,7 @@ Our guiding priciples are:
 
 ### Shoutouts
 
-The interpretation of images relies on the fantastic work by the at [SkiaSharp](https://github.com/mono/SkiaSharp), and the video processing relies on the great contributions provided by [FFMpeg.Core](https://github.com/rosenbjerg/FFMpegCore).
+The interpretation of images relies on the fantastic work by [ImageSharp](https://github.com/SixLabors/ImageSharp), and the video processing relies on the great contributions provided by [FFMpeg.Core](https://github.com/rosenbjerg/FFMpegCore).
 
 ### Contributors
 

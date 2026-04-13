@@ -29,13 +29,12 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
     <PackageReference Include="FFMpegCore" />
-    <PackageReference Include="FFMpegCore.Extensions.SkiaSharp" />
     <PackageReference Include="CommunityToolkit.HighPerformance" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" />
     <PackageReference Include="MinVer">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="SkiaSharp" />
+    <PackageReference Include="SixLabors.ImageSharp" />
   </ItemGroup>
 </Project>

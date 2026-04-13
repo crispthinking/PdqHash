@@ -3,7 +3,8 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using FFMpegCore;
 using FFMpegCore.Enums;
-using SkiaSharp;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace PdqHash;
 
@@ -11,7 +12,7 @@ public static class FFMegImageExt
 {
     extension(Uri input)
     {
-        public async IAsyncEnumerable<(SKBitmap Screenshot, int Frame, TimeSpan? TotalDuration)> GetSnapshotsFromUri(Size? size = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<(Image<Rgba32> Screenshot, int Frame, TimeSpan? TotalDuration)> GetSnapshotsFromUri(System.Drawing.Size? size = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             var source = FFProbe.Analyse(input);
             var baseDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -30,7 +31,7 @@ public static class FFMegImageExt
                 {
                     var index = int.Parse(Path.GetFileNameWithoutExtension(file)[5..], CultureInfo.InvariantCulture);
 
-                    var bitmap = SKBitmap.Decode(file);
+                    var bitmap = SixLabors.ImageSharp.Image.Load<Rgba32>(file);
                     yield return (bitmap, index, source.PrimaryVideoStream?.Duration);
                     bitmap.Dispose();
                 }

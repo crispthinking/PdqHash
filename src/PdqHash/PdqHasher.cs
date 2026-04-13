@@ -2,7 +2,9 @@
 using System.Diagnostics;
 using CommunityToolkit.HighPerformance;
 using CommunityToolkit.HighPerformance.Buffers;
-using SkiaSharp;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace PdqHash.Hashing;
 
@@ -75,56 +77,54 @@ public class PdqHasher : IDisposable
             input = bufferedStream;
         }
 
-        using var codec = SKCodec.Create(input, out var result);
-
-        if (codec == null)
+        Image<Rgba32> original;
+        try
         {
-            throw new ArgumentException($"Failed to parse codec from SKImage stream. Reason: {result}");
+            original = Image.Load<Rgba32>(input);
+        }
+        catch (Exception ex) when (ex is UnknownImageFormatException or InvalidImageContentException or NotSupportedException)
+        {
+            throw new ArgumentException($"Failed to parse input stream as a valid image. {ex.Message}", ex);
         }
 
-        using var original = SKBitmap.Decode(codec);
-
-        if (original == null)
+        using (original)
         {
-            // https://github.com/mono/SkiaSharp/issues/2429
-            throw new ArgumentException($"Failed to parse input stream as a valid SKImage stream. Ensure the stream is able to read minimum of {SKCodec.MinBufferedBytesNeeded} to parse Codec info.");
+            var width = Math.Min(original.Width, 1024);
+            var height = Math.Min(original.Height, 1024);
+
+            if (width != original.Width || height != original.Height)
+            {
+                original.Mutate(x => x.Resize(width, height));
+            }
+
+            var readSeconds = stopwatch.Elapsed.TotalSeconds;
+            var numCols = original.Width;
+            var numRows = original.Height;
+
+            using var buffer1 = SpanOwner<float>.Allocate(numRows * numCols);
+            using var buffer2 = SpanOwner<float>.Allocate(numRows * numCols);
+
+            using var buffer64x64Owner = SpanOwner<float>.Allocate(64 * 64);
+            using var buffer16x16Owner = SpanOwner<float>.Allocate(16 * 16);
+
+            var buffer64x64 = buffer64x64Owner.Span.AsSpan2D(64, 64);
+            var buffer16x16 = buffer64x64Owner.Span.AsSpan2D(16, 16);
+
+            PdqStatistics.ReadDuration.Record(stopwatch.ElapsedMilliseconds);
+            stopwatch.Restart();
+
+            var rv = FromImage(original, buffer1.Span, buffer2.Span, buffer64x64, buffer16x16);
+
+            PdqStatistics.HashDuration.Record(stopwatch.ElapsedMilliseconds);
+            PdqStatistics.HashesGenerated.Add(1);
+
+            return new HashResult(rv.Hash, rv.Quality,
+                new HashingStatistics(readSeconds, stopwatch.Elapsed.TotalSeconds, numRows * numCols, source));
         }
-
-        var width = Math.Min(original.Width, 1024);
-        var height = Math.Min(original.Height, 1024);
-
-        using var resized = original.Resize(new SKImageInfo(width, height)
-        {
-            ColorSpace = SKColorSpace.CreateSrgb(),
-        }, SKSamplingOptions.Default);
-
-        var readSeconds = stopwatch.Elapsed.TotalSeconds;
-        var numCols = resized.Width;
-        var numRows = resized.Height;
-
-        using var buffer1 = SpanOwner<float>.Allocate(resized.Height * resized.Width);
-        using var buffer2 = SpanOwner<float>.Allocate(resized.Height * resized.Width);
-
-        using var buffer64x64Owner = SpanOwner<float>.Allocate(64 * 64);
-        using var buffer16x16Owner = SpanOwner<float>.Allocate(16 * 16);
-
-        var buffer64x64 = buffer64x64Owner.Span.AsSpan2D(64, 64);
-        var buffer16x16 = buffer64x64Owner.Span.AsSpan2D(16, 16);
-
-        PdqStatistics.ReadDuration.Record(stopwatch.ElapsedMilliseconds);
-        stopwatch.Restart();
-
-        var rv = FromImage(resized, buffer1.Span, buffer2.Span, buffer64x64, buffer16x16);
-
-        PdqStatistics.HashDuration.Record(stopwatch.ElapsedMilliseconds);
-        PdqStatistics.HashesGenerated.Add(1);
-
-        return new HashResult(rv.Hash, rv.Quality,
-            new HashingStatistics(readSeconds, stopwatch.Elapsed.TotalSeconds, numRows * numCols, source));
     }
 
 
-    public HashResult FromBitmap(SKBitmap resized, string source)
+    public HashResult FromImage(Image<Rgba32> resized, string source)
     {
         var stopwatch = Stopwatch.StartNew();
 
@@ -168,7 +168,7 @@ public class PdqHasher : IDisposable
         }
     }
 
-    private HashAndQuality FromImage(SKBitmap img, Span<float> buffer1, Span<float> buffer2, Span2D<float> buffer64x64, Span2D<float> buffer16x16)
+    private HashAndQuality FromImage(Image<Rgba32> img, Span<float> buffer1, Span<float> buffer2, Span2D<float> buffer64x64, Span2D<float> buffer16x16)
     {
         var numCols = img.Width;
         var numRows = img.Height;
@@ -421,29 +421,23 @@ public class PdqHasher : IDisposable
         return (dimensionSize + PDQ_JAROSZ_WINDOW_SIZE_DIVISOR - 1) / PDQ_JAROSZ_WINDOW_SIZE_DIVISOR;
     }
 
-    private static void FillFloatLumaFromBufferImage(SKBitmap img, Span<float> luma)
+    private static void FillFloatLumaFromBufferImage(Image<Rgba32> img, Span<float> luma)
     {
         var numCols = img.Width;
         var numRows = img.Height;
-
-        if (img.ColorSpace != null && img.ColorSpace.IsSrgb is false)
-        {
-            throw new InvalidOperationException("Failed to transform image to sRGB color space");
-        }
 
         for (var row = 0; row < numRows; row++)
         {
             for (var col = 0; col < numCols; col++)
             {
-                var pixel = img.GetPixel(col, row);
-                
+                var pixel = img[col, row];
+
                 luma[row * numCols + col] = (
-                    LUMA_FROM_R_COEFF * pixel.Red +
-                    LUMA_FROM_G_COEFF * pixel.Green +
-                    LUMA_FROM_B_COEFF * pixel.Blue
+                    LUMA_FROM_R_COEFF * pixel.R +
+                    LUMA_FROM_G_COEFF * pixel.G +
+                    LUMA_FROM_B_COEFF * pixel.B
                 );
             }
         }
-
     }
 }
